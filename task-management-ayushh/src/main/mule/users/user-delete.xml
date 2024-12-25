@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="delete:\users\delete\(userId):task-management-ayush-config">
+		<ee:transform doc:name="Transform Message" doc:id="c957c785-425c-44b2-a742-17648cedcd76" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[attributes.uriParams.userId]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:select doc:name="Select" doc:id="38fd44f6-9cf6-400d-8aed-ab18c9707729" config-ref="Database_Config1">
+			<db:sql ><![CDATA[select COUNT(*) as count from User where UserID = :UserID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"UserID": attributes.uriParams.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<try doc:name="Try" doc:id="720df3bf-30f9-4ae8-8c32-8859d07c232e" >
+			<choice doc:name="Choice" doc:id="f0e7527c-450c-4338-b591-03503aca3428">
+			<when expression='#[payload[0].count != 0]'>
+					<ee:transform doc:name="Transform Message" doc:id="8d56582a-fe57-4933-a5ce-bd54a63d9eab">
+			<ee:message>
+				<ee:set-payload><![CDATA[attributes.uriParams.userId]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+					<db:delete doc:name="Delete" doc:id="42d804a2-ae72-4793-a5d5-9be5c2130a08" config-ref="Database_Config1">
+			<db:sql><![CDATA[DELETE from User where UserID = :userId;]]></db:sql>
+						<db:input-parameters><![CDATA[#[{
+	userId : attributes.uriParams.userId
+}]]]></db:input-parameters>
+		</db:delete>
+					<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "DELETESUCCESS",
+  message: "User deleted successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+			</when>
+				<otherwise>
+					<raise-error doc:name="Raise error" doc:id="222fce34-15c1-4de2-a8ec-10509a88f432" type="ID:DOESN'T EXIST" />
+			</otherwise>
+		</choice>
+		</try>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="525f1073-d199-4930-89cb-cffb5b953153" type="ID:DOESN'T EXIST">
+				<ee:transform doc:name="Transform Message" doc:id="e968268b-2369-4e72-9232-c3a74423ce84" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "code": "DLTFAILS",
+  "message": "User doesn't exist exist"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    
+</flow>
+	
+	
+</mule>

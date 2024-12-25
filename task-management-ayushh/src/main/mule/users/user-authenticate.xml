@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="post:\users\authenticate:task-management-ayush-config">
+        <db:select doc:name="Select" doc:id="d67101f6-64e2-43fc-b6aa-09bb8695fdb5" config-ref="Database_Config1">
+			<db:sql ><![CDATA[SELECT Username FROM user WHERE Username = :Username AND Password = :Password;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+Username: payload.Username,
+Password: payload.Password
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="77c5e9e1-2fcd-413c-8627-10b7f68dc41e">
+			<when expression="#[sizeOf(payload)&gt;= 1]">
+				<logger level="INFO" doc:name="Logger" doc:id="e5261996-b104-4815-89e5-640e7ecb563c" message="records found"/>
+				<choice doc:name="Choice" doc:id="8ff872f9-0b10-42dc-a089-7391ac0ac969">
+					<when expression="#[!isEmpty(payload)]">
+						<logger level="INFO" doc:name="Logger" doc:id="08fddffa-85f5-4b86-bd55-d0e19bfddb00" message="user authenticate"/>
+						<ee:transform doc:name="Transform Message" doc:id="0c2634a7-1655-4fb8-8fff-4f0e6f0e9194">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "message": "Authentication successful",
+    "Username": payload[0].Username
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Logger" doc:id="d6014759-cd44-4eb4-97ca-f0b23613ccd4" message="failed"/>
+						<ee:transform doc:name="Transform Message" doc:id="2663994c-9c65-4b70-9ea4-dc76ee334ebe" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "message": "Invalid username or password"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="853361e2-aabb-41f8-a236-73ea9b962a99" message="record not found"/>
+				<ee:transform doc:name="Transform Message" doc:id="6fa66b27-12a5-4cfa-b734-5c1cc70ef833" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "message": "Username or password is incorrect! Try again later"
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+    </flow>
+	</mule>

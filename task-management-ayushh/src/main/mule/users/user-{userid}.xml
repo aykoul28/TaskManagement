@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="get:\users\(userId):task-management-ayush-config">
+        <db:select doc:name="Select" doc:id="0b996949-a547-46c7-8b6e-e730ca3b7a80" config-ref="Database_Config1">
+			<db:sql ><![CDATA[select * from User where UserID = :UserID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"UserID" : attributes.uriParams.'userId'
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<try doc:name="Try" doc:id="b9c0e59a-b834-442b-9163-34ea8787dc55" >
+			<choice doc:name="Choice" doc:id="0c697989-7c06-46e4-a88d-68a4960b5309">
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<ee:transform doc:name="Transform Message" doc:id="ff7e1f66-797a-45dd-adf9-2eaa22a12ba1">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<raise-error doc:name="Raise error" doc:id="1821f21a-cdbb-45fb-8a8d-9063bb7ba485" type="ID:USERID"/>
+			</otherwise>
+		</choice>
+		</try>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="465c98e0-b285-4f67-a612-6a192a70a808" type="ID:USERID">
+				<ee:transform doc:name="Transform Message" doc:id="357c8c0a-72fb-446f-aab2-5e2bf70ea255" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "code": "GETFAILS",
+  "message": "User doesn't exist exist"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    
+</flow>
+	</mule>

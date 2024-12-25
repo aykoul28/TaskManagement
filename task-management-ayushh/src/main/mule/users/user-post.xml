@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+      xmlns:email="http://www.mulesoft.org/schema/mule/email"
+      xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+      xmlns:db="http://www.mulesoft.org/schema/mule/db"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+      http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+      http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+      http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+      http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+
+    <email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="5372c01a-8645-4246-8961-8c8e570f3e54" >
+		<email:smtp-connection host="smtp.gmail.com" port="587" user="aykoul28@gmail.com" password="hhsxdeztngvbbxap" >
+			<email:properties >
+				<email:property key="mail.smtp.startls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<flow name="post:\users\post:application\json:task-management-ayush-config">
+        <flow-ref doc:name="Flow Reference" doc:id="4fc5df3f-aebf-403d-a46f-b22ea924d242" name="USER-POST-VALIDATION"/>
+
+        <!-- Check if UserID already exists -->
+		<db:insert doc:name="Insert" doc:id="94aa3fdd-3f34-4e03-be23-499b1aaf916c" config-ref="Database_Config1">
+            <db:sql><![CDATA[INSERT INTO User (UserID, Username, Password, Email, FullName)
+VALUES (:UserID, :Username, :Password, :Email, :FullName);
+            ]]></db:sql>
+            <db:input-parameters><![CDATA[#[payload]]]>
+            
+               
+            </db:input-parameters>
+        </db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="82d27284-23cb-47a5-aaa5-d3d5f350214b" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "POSTSUCCESS",
+  message: "User added successfully"
+}]]>
+</ee:set-payload>
+            </ee:message>
+        </ee:transform>
+  
+        
+
+        <!-- Error Handler -->
+		<error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7f0c1654-470e-463e-9a2f-ea18d6002130" type="VALIDATION:NULL">
+                <ee:transform doc:name="Transform Message" doc:id="8346e3cd-6de2-497d-bbb6-ee1415673061">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "code": "402",
+    "message": "UserId cannot be null"
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="21dc8927-7091-48c4-8688-bd393c8054e2" type="VALIDATION:BLANK_STRING">
+                <ee:transform doc:name="Transform Message" doc:id="0beb4b95-68d5-411d-86b0-604ce5e0c175">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "code": "404",
+    "message": error.description
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="2b5c48a1-05b4-45d9-8c66-501a797bfc2c" >
+				<ee:transform doc:name="Transform Message" doc:id="3ba264d1-8190-4ba5-af7d-48baeeceab5d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+        
+</error-handler>
+    </flow>
+
+    <sub-flow name="USER-POST-VALIDATION" doc:id="d0d05144-fb3e-4c35-9245-7aa1c7b91ead">
+        <validation:all doc:name="All" doc:id="5e3f2944-0cd3-4eeb-aad9-c91eee3966cd">
+            <validation:is-not-null doc:name="Check for userID" doc:id="0c2b39e8-ef85-4291-9e09-e9710ce5d056" value="#[payload.UserID]" message="UserID cannot be null"/>
+            <validation:is-not-blank-string doc:name="Check for Username" doc:id="30a8c5c5-a29c-4730-adba-260027dda5c8" value="#[payload.Username]" message="Username cannot be null"/>
+            <validation:is-not-blank-string doc:name="check for password" doc:id="b639ede7-f295-4986-9c3a-7e19d11d7fd4" value="#[payload.Password]" message="Password Cannot be null"/>
+            <validation:is-not-blank-string doc:name="check for email" doc:id="af2ff57f-140e-408a-82f7-fe95b830acdd" value="#[payload.Email]" message="Email cannot be null"/>
+            <validation:is-email doc:name="Email should be correct" doc:id="543db462-d7fe-4588-b70e-ad2a6aab70a8" email="#[payload.Email]" message="Email Should be correct"/>
+            <validation:is-not-blank-string doc:name="Check for Name" doc:id="7ff1bb2c-1c5d-4ef7-a39d-44a3cc4797b5" value="#[payload.FullName]" message="Name cannot be null"/>
+        </validation:all>
+    </sub-flow>
+
+</mule>

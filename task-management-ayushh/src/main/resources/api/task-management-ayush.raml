@@ -1,0 +1,511 @@
+#%RAML 1.0
+title: Task-Management-Ayush
+baseUri: http://localhost:8070/api
+
+/users/post:
+  description: Create a new user
+  post:
+    body:
+      application/json:
+        type: object
+        properties:
+          UserID: 
+            required: true
+            type: integer
+            example: 1
+          Username:
+            required: true
+            type: string
+            example: "abc"
+          Password:
+            required: true
+            type: string
+            example: "abc123"
+          Email:
+            required: true
+            type: string
+            example: "abc@example.com"
+          FullName:
+            required: true
+            type: string
+            example: "abc xyz"
+        example:
+          {
+            "UserID": 1,
+            "Username": "abc",
+            "Password": "abc123",
+            "Email": "abc@example.com",
+            "FullName": "abc xyz"
+          }
+
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "POSTSUCCESS"
+              message:
+                type: string
+                required: true
+                example: "Successfully processed request." 
+ 
+            example: 
+              {
+                "code": "POSTSUCCESS",
+                "message": "Category added successfully"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "ADDFAILS"
+              message:
+                type: string
+                required: true
+                example: "user already exist" 
+            example: 
+              {
+                "code": "ADDFAILS",
+                "message": "user already exist"
+              }
+
+
+/users/all:
+  description: Get a list of all users
+  get:
+
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "POSTSUCCESS"
+              message:
+                type: string
+                required: true
+                example: "Successfully processed request." 
+ 
+            example: 
+              {
+                "code": "POSTSUCCESS",
+                "message": "Category added successfully"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "GETFAILS"
+              message:
+                type: string
+                required: true
+                example: "User list is empty" 
+            example: 
+              {
+                "code": GETFAILS",
+                "message":User list is empty"
+              }
+
+
+
+/users/{userId}:
+  description: Get details of a specific user by ID.
+  get:
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "POSTSUCCESS"
+              
+ 
+            example: 
+              {
+                "code" : "{'id':1, 'Username':'abc123'}"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "GETFAILS"
+              message:
+                type: string
+                required: true
+                example: "User doesn't exist" 
+            example: 
+              {
+                "code": "GETFAILS",
+                "message": "User doesn't exist"
+              }     
+
+
+/users/email-domain/{domain}:
+  description: Get users with a specific email domain.
+
+  get:
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "POSTSUCCESS"
+              
+ 
+            example: 
+              {
+                "code" : "{'id':1, 'Email':'abc@example.com'}"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "GETFAILS"
+              message:
+                type: string
+                required: true
+                example: "User doesn't exist" 
+            example: 
+              {
+                "code": "GETFAILS",
+                "message": "User doesn't exist"
+              }     
+
+/users/search/{FullName}:
+  description: Search for users by name.
+  
+  get:
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "POSTSUCCESS"
+              
+ 
+            example: 
+              {
+                "code" : "{'id':1, 'FullName':'abc xyz'}"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "GETFAILS"
+              message:
+                type: string
+                required: true
+                example: "User doesn't exist" 
+            example: 
+              {
+                "code": "GETFAILS",
+                "message": "User doesn't exist"
+              }     
+
+/users/most-tasks:
+  description: users who are assigned the most tasks.
+  
+  get:
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "POSTSUCCESS"
+              
+ 
+            example: 
+              {
+                "code" : "{'id':1, 'Username':'abc123'}"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "ADDFAILS"
+              message:
+                type: string
+                required: true
+                example: "User already exist" 
+            example: 
+              {
+                "code": ADDFAILS",
+                "message":User already exist"
+              }  
+
+/users/authenticate:
+  description: Authenticate a user.
+  post:
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "AUTHSUCCESS"
+              message:
+                type: string
+                required: true
+                example: "User is valid"
+              
+ 
+            example: 
+              {
+                "code": "AUTHSUCCESS",
+                "message": "User is valid"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "GETFAILS"
+              message:
+                type: string
+                required: true
+                example: "User doesn't exist" 
+            example: 
+              {
+                "code": "GETFAILS",
+                "message": "User doesn't exist"
+              }     
+
+/users/completed-tasks:
+  description: Get users who have completed tasks.
+  get:
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "AUTHSUCCESS"
+              message:
+                type: string
+                required: true
+                example: "User is valid"
+            
+            example: 
+              {
+                "code": "AUTHSUCCESS",
+                "message": "User is valid"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "GETFAILS"
+              message:
+                type: string
+                required: true
+                example: "User doesn't exist" 
+            example: 
+              {
+                "code": "GETFAILS",
+                "message": "User doesn't exist"
+             }
+
+/users/update/{userId}:
+  description: Update user details.
+  put:
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "UPDATESUCCESS"
+              message:
+                type: string
+                required: true
+                example: "User updated successfully"
+              
+ 
+            example: 
+              {
+                "code": "UPDATESUCCESS",
+                "message": "User updated successfully"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "UPDATEFAILS"
+              message:
+                type: string
+                required: true
+                example: "User doesn't exitg" 
+            example: 
+              {
+                "code": UPDATEFAILS",
+                "message":User doesn't exist"
+              }
+
+/users/delete/{userId}:
+  description: Delete a user.
+  delete:
+    responses:
+      200:
+        description: Successfully processed the request.
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "DELETESUCCESS"
+              message:
+                type: string
+                required: true
+                example: "User is deleted successfully"
+              
+ 
+            example: 
+              {
+                "code": "DELETESUCCESS",
+                "message": "User deleted successfully"
+              }
+      
+        
+       
+      400:
+        description: Bad Request
+        body:
+          application/json:
+            type: object
+            properties:
+              code:
+                type: string
+                required: true
+                example: "DLTFAILS"
+              message:
+                type: string
+                required: true
+                example: "User doesn't exist" 
+            example: 
+              {
+                "code": DLTFAILS",
+                "message":User doesn't exist"
+              } 
+
+
+
+
+
+
+
+
+        
+        

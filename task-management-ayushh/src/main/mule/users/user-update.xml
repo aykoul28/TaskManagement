@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="put:\users\update\(userId):task-management-ayush-config">
+        <flow-ref doc:name="Flow Reference" doc:id="a6663084-20a1-40af-8ad9-321491c16305" name="USER-UPDATE_SUB-FLOW"/>
+		<db:update doc:name="Update" doc:id="0d1b7f5a-8b3e-4c07-8570-7d2d690dfffa" config-ref="Database_Config1">
+			<db:sql><![CDATA[UPDATE User
+SET 
+    Username = COALESCE(:Username, Username), 
+    Password = COALESCE(:Password, Password), 
+    Email = COALESCE(:Email, Email), 
+    FullName = COALESCE(:FullName, FullName)
+WHERE UserID = :UserID;
+]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	"UserID":attributes.uriParams.userId,
+	"Username":payload.Username,
+	"Password":payload.Password,
+	"Email":payload.Email,
+	"FullName":payload.FullName
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message">
+            <ee:variables>
+                <ee:set-variable variableName="userId">attributes.uriParams.'userId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "UPDATESUCCESS",
+  message: "User updated successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="40d04945-d943-477d-a6c6-d5abd99b4a41" type="VALIDATION:BLANK_STRING">
+				<ee:transform doc:name="Transform Message" doc:id="f1404818-e09d-4e65-acaf-4d9a6db84f94" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"code":"700",
+	"message":error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e71dfa25-49d1-4f3c-b8d1-2c6b1a675b84" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="0973c4f7-07b9-436f-9043-667aaff8bcd9" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"code":"700",
+	"message":error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    
+</flow>
+	<sub-flow name="USER-UPDATE_SUB-FLOW" doc:id="2acc3b04-3fa0-47b4-b47a-f3dab0c87926" >
+	<validation:is-not-blank-string doc:name="Check for Username" doc:id="72420d43-e41e-476d-be63-1c3599c9a316" value="#[payload.Username]" message="Username cannot be null"/>
+		<validation:is-not-blank-string doc:name="check for password" doc:id="5f033469-18f2-4918-8179-c928ac660042" value="#[payload.Password]" message="Password Cannot be null"/>
+		<validation:is-not-blank-string doc:name="check for email" doc:id="52cafdb5-4d70-411e-aad2-30f68c6b4945" value="#[payload.Email]" message="Email cannot be null" />
+		<validation:is-email doc:name="Email should be correct" doc:id="c36a34ca-7b58-4a6c-9da4-74394dd26379" email="#[payload.Email]" message="Email Should be correct"/>
+		<validation:is-not-blank-string doc:name="Check for Name" doc:id="c0ac5216-cde3-4302-97dd-d8d6242a98b0" value="#[payload.FullName]" message="Name cannot be null"/>
+	</sub-flow>
+	
+</mule>
